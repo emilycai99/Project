@@ -18,9 +18,10 @@ import tensorflow as tf
 import sys, os
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from utils_tf import from_pickle
-from get_args import get_args
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from tf_version.utils_tf import from_pickle
+from tf_version.get_args import get_args
 args = get_args()
 
 if args.dist_name == 'Elliptic_PDE':

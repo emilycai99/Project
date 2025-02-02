@@ -12,13 +12,14 @@ import tensorflow_probability as tfp
 import numpy as np
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from nn_models_tf import MLP
-from hnn_tf import HNN
-from get_args import get_args
-from utils_tf import leapfrog_tf, log_start, log_stop
-from functions_tf import functions_tf
-from data_tf import dynamics_fn_tf
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from tf_version.nn_models_tf import MLP
+from tf_version.hnn_tf import HNN
+from tf_version.get_args import get_args
+from tf_version.utils_tf import leapfrog_tf, log_start, log_stop
+from tf_version.functions_tf import functions_tf
+from tf_version.data_tf import dynamics_fn_tf
 
 ##### Sampling code below #####
 # To load the trained HNN model

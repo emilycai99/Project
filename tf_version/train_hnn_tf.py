@@ -20,12 +20,13 @@ import keras
 import math
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from nn_models_tf import MLP
-from hnn_tf import HNN
-from data_tf import get_dataset_tf
-from utils_tf import L2_loss, log_start, log_stop
-from get_args import get_args
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from tf_version.nn_models_tf import MLP
+from tf_version.hnn_tf import HNN
+from tf_version.data_tf import get_dataset_tf
+from tf_version.utils_tf import L2_loss, log_start, log_stop
+from tf_version.get_args import get_args
 
 def train(args):
   # set random seed

@@ -18,10 +18,11 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from functions_tf import functions_tf
-from utils_tf import leapfrog_tf, to_pickle, from_pickle
-from get_args import get_args
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from tf_version.functions_tf import functions_tf
+from tf_version.utils_tf import leapfrog_tf, to_pickle, from_pickle
+from tf_version.get_args import get_args
 args = get_args()
 
 def dynamics_fn_tf(t, coords):
