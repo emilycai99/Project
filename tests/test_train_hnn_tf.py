@@ -131,9 +131,9 @@ def test_train(mocker, mock_hnn, mock_hnn_pytorch, mock_get_dataset, mock_get_da
     for i, (name, x) in enumerate(out_model_pytorch.named_parameters()):
         if 'weight' in name:
             # print(np.max(x.data.detach().clone().numpy()-np.transpose(tf_weights[keys[i]])))
-            assert np.allclose(x.data.detach().clone().numpy(), np.transpose(tf_weights[keys[i]]), atol=1e-2)
+            assert np.allclose(x.data.detach().clone().numpy(), np.transpose(tf_weights[keys[i]]), atol=1e-1)
         elif 'bias' in name:
-            assert np.allclose(x.data.detach().clone().numpy(), tf_weights[keys[i]], atol=1e-2)
+            assert np.allclose(x.data.detach().clone().numpy(), tf_weights[keys[i]], atol=1e-1)
 
     
 

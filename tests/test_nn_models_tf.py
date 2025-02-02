@@ -22,7 +22,7 @@ def test_MLP(mocker, mock_choose_nonlinearity):
     unit test MLP
     further test whether the MLP has the same output as the pytorch version
     '''
-    mocker.patch('nn_models_tf.choose_nonlinearity', mock_choose_nonlinearity)
+    mocker.patch('tf_version.nn_models_tf.choose_nonlinearity', mock_choose_nonlinearity)
     batch_size = 2
     input_dim = 4
     hidden_dim = 100
