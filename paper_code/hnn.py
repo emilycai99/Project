@@ -18,9 +18,10 @@ import numpy as np
 
 import os, sys
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from utils import lfrog
-from get_args import get_args
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from paper_code.utils import lfrog
+from paper_code.get_args import get_args
 args = get_args()
 
 class HNN(torch.nn.Module):

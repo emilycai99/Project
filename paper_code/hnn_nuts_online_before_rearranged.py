@@ -13,14 +13,15 @@ from statsmodels.distributions.empirical_distribution import ECDF
 import tensorflow as tf
 import tensorflow_probability as tfp
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from nn_models import MLP
-from hnn import HNN
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from paper_code.nn_models import MLP
+from paper_code.hnn import HNN
 from scipy.stats import norm
 from scipy.stats import uniform
-from .get_args import get_args
-from .utils import leapfrog, log_start, log_stop
-from .functions import functions
+from paper_code.get_args import get_args
+from paper_code.utils import leapfrog, log_start, log_stop
+from paper_code.functions import functions
 args = get_args()
 from .data import dynamics_fn
 os.environ["CUDA_VISIBLE_DEVICES"]="1"

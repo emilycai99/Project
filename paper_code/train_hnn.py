@@ -18,12 +18,13 @@ import torch, argparse
 import numpy as np
 import os, sys
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from nn_models import MLP
-from hnn import HNN
-from data import get_dataset
-from utils import L2_loss, to_pickle, log_start, log_stop
-from get_args import get_args
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from paper_code.nn_models import MLP
+from paper_code.hnn import HNN
+from paper_code.data import get_dataset
+from paper_code.utils import L2_loss, to_pickle, log_start, log_stop
+from paper_code.get_args import get_args
 
 def train(args):
   # set random seed

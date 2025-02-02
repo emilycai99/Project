@@ -11,13 +11,16 @@ import matplotlib.pyplot as plt
 from statsmodels.distributions.empirical_distribution import ECDF
 import tensorflow as tf
 import tensorflow_probability as tfp
-from nn_models import MLP
-from hnn import HNN
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from paper_code.nn_models import MLP
+from paper_code.hnn import HNN
 from scipy.stats import norm
 from scipy.stats import uniform
-from get_args import get_args
-from utils import leapfrog
-from functions import functions
+from paper_code.get_args import get_args
+from paper_code.utils import leapfrog
+from paper_code.functions import functions
 args = get_args()
 
 ##### User-defined sampling parameters #####

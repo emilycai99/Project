@@ -19,11 +19,12 @@ import autograd.numpy as np
 import autograd
 import os, sys
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
 from scipy.stats import norm
-from functions import functions
-from utils import leapfrog, to_pickle, from_pickle
-from get_args import get_args
+from paper_code.functions import functions
+from paper_code.utils import leapfrog, to_pickle, from_pickle
+from paper_code.get_args import get_args
 args = get_args()
 
 def dynamics_fn(t, coords):
