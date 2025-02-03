@@ -6,8 +6,8 @@ This repository comprises four main directories and two PDF files:
 * **tf_version**: contains my TensorFlow implementations (**Part I**);
 * **pseudo_marginal**: contains my adaptations of the efficient NUTS method in Dhulipala et al. (2023) to pseudo-marginal HMC in Alenlov et al. (2021) (**Part II**);
 * **tests**: contains the test files to check the correctness of TensorFlow implementations (**Parts I and II**);
-* **Part_I_report****.pdf**: presents my Part-I report.
-* **Part_II_report****.pdf**: presents my Part-II report.
+* **Part_I_report.pdf**: presents my Part-I report.
+* **Part_II_report.pdf**: presents my Part-II report.
 
 # Usage
 
