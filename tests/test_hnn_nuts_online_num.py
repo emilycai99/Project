@@ -8,7 +8,7 @@ import os, sys
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
 sys.path.append(PARENT_DIR)
-from pseudo_marginal.hnn_nuts_online_num import *
+from pseudo_marginal.archive_sampling_files.hnn_nuts_online_num import *
 from pseudo_marginal.grad import calculate_grad
 
 class mock_args():
@@ -27,7 +27,7 @@ class mock_args():
         self.p = 8
         self.N = 2
         self.test_fraction = 1.0
-        self.save_dir = os.path.join(PARENT_DIR, 'pseudo_marginal')
+        self.save_dir = PARENT_DIR
         self.batch_size = 2
         self.batch_size_test = 2
         self.shuffle_buffer_size = 2
@@ -39,7 +39,7 @@ class mock_args():
         self.nn_out_dim = 26
         self.nonlinearity = 'sine'
         self.num_layers = 3
-        self.data_pth = os.path.join(PARENT_DIR, 'pseudo_marginal/data')
+        self.data_pth = os.path.join(PARENT_DIR, 'data')
         self.grad_type = None
         self.penalty_strength = 0.0
         self.verbose = True
@@ -75,8 +75,8 @@ def test_build_tree_tf(mocker, mock_integrator, mock_integrator_mass):
     test for build_tree_tf
     '''
     args = mock_args()
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.integrator', mock_integrator)
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.integrator_mass', mock_integrator_mass)
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.integrator', mock_integrator)
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.integrator_mass', mock_integrator_mass)
     log_slice_var = tf.zeros(shape=[], dtype=tf.float32)
     theta = tf.random.normal(shape=[args.target_dim])
     rho = tf.random.normal(shape=[args.target_dim])
@@ -153,11 +153,11 @@ def test_sample(mocker, mock_build_tree_tf):
     '''
     unit test for sample
     '''
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.build_tree_tf', mock_build_tree_tf)
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.np.save')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.log_start')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.log_stop')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.print')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.build_tree_tf', mock_build_tree_tf)
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.np.save')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.log_start')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.log_stop')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.print')
 
     args = mock_args()
     samples, traj_len, alpha_req, H_store, monitor_err, is_lf = sample(args)
@@ -182,10 +182,10 @@ def test_integration_sample(mocker):
     '''
     integration test for sample
     '''
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.np.save')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.os.makedirs')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.log_start')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num.log_stop')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.np.save')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.os.makedirs')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.log_start')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.log_stop')
     args = mock_args()
     cal_grad = calculate_grad(args)
     args.grad_func = cal_grad.grad_total

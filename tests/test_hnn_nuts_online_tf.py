@@ -10,11 +10,11 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
 sys.path.append(PARENT_DIR)
 
-from tf_version.hnn_nuts_online_tf import build_tree_tf, integrate_model_tf, stop_criterion_tf
+from tf_version.archive_sampling_files.hnn_nuts_online_tf import build_tree_tf, integrate_model_tf, stop_criterion_tf
 from tf_version.hnn_tf import HNN
 from tf_version.nn_models_tf import MLP
 from tf_version.get_args import get_args
-from tf_version.hnn_nuts_online_tf import sample
+from tf_version.archive_sampling_files.hnn_nuts_online_tf import sample
 from paper_code.hnn_nuts_online import build_tree, stop_criterion
 from paper_code.hnn_nuts_online import sample as sample_pytorch
 from paper_code.hnn import HNN as HNN_pytorch
@@ -59,13 +59,13 @@ def test_build_tree_tf(mocker, mock_integrate_model_tf, mock_functions_tf,
     '''
     unit test for build_tree_tf
     '''
-    # mock tf_version.hnn_nuts_online_tf file
-    mocker.patch('tf_version.hnn_nuts_online_tf.integrate_model_tf', mock_integrate_model_tf)
-    # mocker.patch('tf_version.hnn_nuts_online_tf.functions_tf', mock_functions_tf)
-    mocker.patch('tf_version.hnn_nuts_online_tf.stop_criterion_tf', mock_stop_criterion_tf)
-    # mocker.patch("tf_version.hnn_nuts_online_tf.args", setup_args('2D_Gauss_mix'))
+    # mock tf_version.archive_sampling_files.hnn_nuts_online_tf file
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.integrate_model_tf', mock_integrate_model_tf)
+    # mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.functions_tf', mock_functions_tf)
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.stop_criterion_tf', mock_stop_criterion_tf)
+    # mocker.patch("tf_version.archive_sampling_files.hnn_nuts_online_tf.args", setup_args('2D_Gauss_mix'))
     # mocker.patch("tf_version.functions_tf.args", setup_args('2D_Gauss_mix'))
-    mocker.patch("tf_version.hnn_nuts_online_tf.tf.random.uniform", mock_random_uniform)
+    mocker.patch("tf_version.archive_sampling_files.hnn_nuts_online_tf.tf.random.uniform", mock_random_uniform)
 
     # mock paper_code.hnn_nuts_online
     mocker.patch('paper_code.hnn_nuts_online.integrate_model', mock_integrate_model)
@@ -125,7 +125,7 @@ def test_integrate_model_tf(mocker, mock_hnn, mock_leapfrog_tf, setup_args):
     '''
     unit test to check integrate_model_tf function
     '''
-    mocker.patch('tf_version.hnn_nuts_online_tf.leapfrog_tf', mock_leapfrog_tf)
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.leapfrog_tf', mock_leapfrog_tf)
     y0 = tf.random.normal(shape=[4])
     result = integrate_model_tf(mock_hnn(), [0, 1],  y0, 1, args=setup_args('2D_Gauss_mix'))
     expected = tf.repeat(tf.expand_dims(y0, axis=-1), repeats=2, axis=-1)
@@ -226,17 +226,17 @@ def mock_np_random_normal():
 def test_integration_hnn_nuts_online(mocker, build_hnn, build_hnn_pytorch, mock_tf_random_uniform,
                                      mock_np_random_uniform, mock_tf_random_normal, mock_np_random_normal):
     '''
-    an integration test to check the correctness of hnn_nuts_online_tf
+    an integration test to check the correctness of archive_sampling_files.hnn_nuts_online_tf
     by comparing the results with pytorch version
     '''
 
-    mocker.patch('tf_version.hnn_nuts_online_tf.log_start')
-    mocker.patch('tf_version.hnn_nuts_online_tf.log_stop')
-    mocker.patch('tf_version.hnn_nuts_online_tf.np.save')
-    mocker.patch('tf_version.hnn_nuts_online_tf.os.makedirs')
-    mocker.patch('tf_version.hnn_nuts_online_tf.get_model', build_hnn)
-    mocker.patch('tf_version.hnn_nuts_online_tf.tf.random.uniform', mock_tf_random_uniform)
-    mocker.patch('tf_version.hnn_nuts_online_tf.tf.random.normal', mock_tf_random_normal)
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.log_start')
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.log_stop')
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.np.save')
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.os.makedirs')
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.get_model', build_hnn)
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.tf.random.uniform', mock_tf_random_uniform)
+    mocker.patch('tf_version.archive_sampling_files.hnn_nuts_online_tf.tf.random.normal', mock_tf_random_normal)
 
     mocker.patch('paper_code.hnn_nuts_online.log_start')
     mocker.patch('paper_code.hnn_nuts_online.log_stop')

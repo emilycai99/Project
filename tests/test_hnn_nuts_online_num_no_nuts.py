@@ -8,7 +8,7 @@ import os, sys
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
 sys.path.append(PARENT_DIR)
-from pseudo_marginal.hnn_nuts_online_num_no_nuts import *
+from pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts import *
 from pseudo_marginal.grad import calculate_grad
 
 def test_print_result():
@@ -53,7 +53,7 @@ class mock_args():
         self.p = 8
         self.N = 2
         self.test_fraction = 1.0
-        self.save_dir = os.path.join(PARENT_DIR, 'pseudo_marginal')
+        self.save_dir = PARENT_DIR
         self.batch_size = 2
         self.batch_size_test = 2
         self.shuffle_buffer_size = 2
@@ -65,7 +65,7 @@ class mock_args():
         self.nn_out_dim = 26
         self.nonlinearity = 'sine'
         self.num_layers = 3
-        self.data_pth = os.path.join(PARENT_DIR, 'pseudo_marginal/data')
+        self.data_pth = os.path.join(PARENT_DIR, 'data')
         self.grad_type = None
         self.penalty_strength = 0.0
         self.verbose = True
@@ -102,13 +102,13 @@ def test_sample(mocker, mock_tf_random_normal, mock_integrator, mock_func):
     '''
     unit test for sample
     '''
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.np.save')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.log_start')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.log_stop')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.print')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.tf.random.normal', mock_tf_random_normal)
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.integrator', mock_integrator)
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.calculate_grad.calculate_H', mock_func)
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.np.save')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.log_start')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.log_stop')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.print')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.tf.random.normal', mock_tf_random_normal)
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.integrator', mock_integrator)
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.calculate_grad.calculate_H', mock_func)
 
     args = mock_args()
     samples, H_store = sample(args)
@@ -123,10 +123,10 @@ def test_integration_sample(mocker):
     '''
     integration test for sample
     '''
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.np.save')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.os.makedirs')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.log_start')
-    mocker.patch('pseudo_marginal.hnn_nuts_online_num_no_nuts.log_stop')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.np.save')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.os.makedirs')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.log_start')
+    mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.log_stop')
     args = mock_args()
     cal_grad = calculate_grad(args)
     args.grad_func = cal_grad.grad_total
