@@ -6,9 +6,6 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
 sys.path.append(PARENT_DIR)
 from tf_version.utils_tf import lfrog
-from tf_version.get_args import get_args
-
-args = get_args()
 
 @keras.saving.register_keras_serializable()
 class HNN(keras.Model):
@@ -30,12 +27,12 @@ class HNN(keras.Model):
             return self.differentiable_model(x)
 
         y = self.differentiable_model(x)
-        assert len(y.shape) == 2 and y.shape[1] == args.input_dim, "Output tensor should have shape [batch_size, 2]"
+        assert len(y.shape) == 2 and y.shape[1] == self.input_dim, "Output tensor should have shape [batch_size, 2]"
         # dic1: split each input dim as a separate tensor
         dic1 = (tf.split(y, num_or_size_splits=y.shape[1], axis=1))
         # answer1: a tuple, the first one is the tensor formed by the first half of the column, while the second one is the rest
         # each with dimension: batch_size x input_dim/2
-        answer1 = tf.concat(dic1[0:int(args.input_dim/2)], axis=1), tf.concat(dic1[int(args.input_dim/2):args.input_dim], axis=1)
+        answer1 = tf.concat(dic1[0:int(self.input_dim/2)], axis=1), tf.concat(dic1[int(self.input_dim/2):self.input_dim], axis=1)
         return answer1
     
     def get_config(self):

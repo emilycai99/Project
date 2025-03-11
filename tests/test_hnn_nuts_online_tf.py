@@ -38,6 +38,9 @@ def mock_functions_tf():
         return 5.0
     return _mock_functions_tf
 
+def mock_functions_tf_func(x):
+    return 5.0
+
 @pytest.fixture
 def mock_stop_criterion_tf():
     def _mock_stop_criterion_tf(*args):
@@ -58,10 +61,10 @@ def test_build_tree_tf(mocker, mock_integrate_model_tf, mock_functions_tf,
     '''
     # mock tf_version.hnn_nuts_online_tf file
     mocker.patch('tf_version.hnn_nuts_online_tf.integrate_model_tf', mock_integrate_model_tf)
-    mocker.patch('tf_version.hnn_nuts_online_tf.functions_tf', mock_functions_tf)
+    # mocker.patch('tf_version.hnn_nuts_online_tf.functions_tf', mock_functions_tf)
     mocker.patch('tf_version.hnn_nuts_online_tf.stop_criterion_tf', mock_stop_criterion_tf)
     # mocker.patch("tf_version.hnn_nuts_online_tf.args", setup_args('2D_Gauss_mix'))
-    mocker.patch("tf_version.functions_tf.args", setup_args('2D_Gauss_mix'))
+    # mocker.patch("tf_version.functions_tf.args", setup_args('2D_Gauss_mix'))
     mocker.patch("tf_version.hnn_nuts_online_tf.tf.random.uniform", mock_random_uniform)
 
     # mock paper_code.hnn_nuts_online
@@ -69,18 +72,15 @@ def test_build_tree_tf(mocker, mock_integrate_model_tf, mock_functions_tf,
     mocker.patch('paper_code.hnn_nuts_online.functions', mock_functions_tf)
     mocker.patch('paper_code.hnn_nuts_online.stop_criterion', mock_stop_criterion_tf)
     # mocker.patch("paper_code.hnn_nuts_online.args", setup_args('2D_Gauss_mix'))
-    mocker.patch("paper_code.functions.args", setup_args('2D_Gauss_mix'))
     mocker.patch("paper_code.hnn_nuts_online.np.random.uniform", mock_random_uniform)
 
     theta = tf.random.normal(shape=[2,], dtype=tf.float32)
     r = tf.random.normal(shape=[2,], dtype=tf.float32)
     thetaminus, rminus, thetaplus, rplus, thetaprime, rprime, nprime, sprime, alphaprime, nalphaprime, monitor, call_lf \
-          = build_tree_tf(theta, r, u=0.4, v=1, j=1, epsilon=0.5, joint0=4, call_lf=1, hnn_model=None, args=setup_args('2D_Gauss_mix'))
+          = build_tree_tf(theta, r, u=0.4, v=1, j=1, epsilon=0.5, joint0=4, call_lf=1, hnn_model=None, args=setup_args('2D_Gauss_mix'), functions_tf=mock_functions_tf_func)
     thetaminus_np, rminus_np, thetaplus_np, rplus_np, thetaprime_np, rprime_np, nprime_np, sprime_np, alphaprime_np, nalphaprime_np, monitor_np, call_lf_np \
           = build_tree(theta.numpy(), r.numpy(), logu=0.4, v=1, j=1, epsilon=0.5, joint0=4.0, call_lf=1, hnn_model=None, args=setup_args('2D_Gauss_mix'))
     
-    print('thetaminus.numpy()', thetaminus.numpy())
-    print('thetaminus_np', thetaminus_np)
     assert np.allclose(thetaminus.numpy(), thetaminus_np)
     assert np.allclose(rminus.numpy(), rminus_np)
     assert np.allclose(thetaplus.numpy(), thetaplus_np)
@@ -154,13 +154,6 @@ args.total_steps = 0
 
 def build_model():
     # initialize tf version model
-    args = get_args()
-    args.batch_size = 2
-    args.hidden_dim = 10
-    args.num_hmc_samples = 3
-    args.num_burnin_samples = 0
-    args.total_steps = 0
-    print('args', args.input_dim)
     nn_model = MLP(args.input_dim, args.hidden_dim, args.input_dim, args.nonlinearity,
                     num_layers=args.num_layers)
     model = HNN(args.input_dim, differentiable_model=nn_model,

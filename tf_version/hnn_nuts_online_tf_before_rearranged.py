@@ -18,10 +18,12 @@ from tf_version.nn_models_tf import MLP
 from tf_version.hnn_tf import HNN
 from tf_version.get_args import get_args
 from tf_version.utils_tf import leapfrog_tf, log_start, log_stop
-from tf_version.functions_tf import functions_tf
+from tf_version.functions_tf import dist_func
 from tf_version.data_tf import dynamics_fn_tf
 
 args = get_args()
+dist_func_obj = dist_func(args)
+functions_tf = dist_func_obj.get_Hamiltonian
 
 os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(str(args.gpu_id))
 

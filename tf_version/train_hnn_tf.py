@@ -61,6 +61,10 @@ def train(args):
   print('x.shape', x.shape)
   print('test_x.shape', test_x.shape)
 
+  # check whether the correct batch size is set
+  assert args.batch_size <= x.shape[0], 'args.batch_size {} > sample size {}'.format(args.batch_size, x.shape[0])
+  assert args.batch_size_test <= test_x.shape[0], 'args.batch_size_test {} > test sample size {}'.format(args.batch_size_test, test_x.shape[0])
+
   # vanilla train loop
   print('Training HNN begins...')
   stats = {'train_loss': [], 'test_loss': []}

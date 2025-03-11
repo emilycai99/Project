@@ -18,7 +18,7 @@ from tf_version.nn_models_tf import MLP
 from tf_version.hnn_tf import HNN
 from tf_version.get_args import get_args
 from tf_version.utils_tf import leapfrog_tf, log_start, log_stop
-from tf_version.functions_tf import functions_tf
+from tf_version.functions_tf import dist_func
 from tf_version.data_tf import dynamics_fn_tf
 
 ##### Sampling code below #####
@@ -53,7 +53,7 @@ def stop_criterion_tf(thetaminus, thetaplus, rminus, rplus):
 
 log_counter_lf = 0
 
-def build_tree_tf(theta, r, u, v, j, epsilon, joint0, call_lf, hnn_model, args):
+def build_tree_tf(theta, r, u, v, j, epsilon, joint0, call_lf, hnn_model, args, functions_tf):
     """The main recursion."""
     """
     Arguments 
@@ -114,14 +114,14 @@ def build_tree_tf(theta, r, u, v, j, epsilon, joint0, call_lf, hnn_model, args):
     else:
         # see Algorithm 3 in Hoffman et al., (2014)
         # Recursion: Implicitly build the height j-1 left and right subtrees.
-        thetaminus, rminus, thetaplus, rplus, thetaprime, rprime, nprime, sprime, alphaprime, nalphaprime, monitor, call_lf = build_tree_tf(theta, r, u, v, j - 1, epsilon, joint0, call_lf, hnn_model, args)
+        thetaminus, rminus, thetaplus, rplus, thetaprime, rprime, nprime, sprime, alphaprime, nalphaprime, monitor, call_lf = build_tree_tf(theta, r, u, v, j - 1, epsilon, joint0, call_lf, hnn_model, args, functions_tf)
         # No need to keep going if the stopping criteria were met in the first subtree.
         if sprime == 1:
             # Build the left tree
             if v == -1:
-                thetaminus, rminus, _, _, thetaprime2, rprime2, nprime2, sprime2, alphaprime2, nalphaprime2, monitor, call_lf = build_tree_tf(thetaminus, rminus, u, v, j - 1, epsilon, joint0, call_lf, hnn_model, args)
+                thetaminus, rminus, _, _, thetaprime2, rprime2, nprime2, sprime2, alphaprime2, nalphaprime2, monitor, call_lf = build_tree_tf(thetaminus, rminus, u, v, j - 1, epsilon, joint0, call_lf, hnn_model, args, functions_tf)
             else:
-                _, _, thetaplus, rplus, thetaprime2, rprime2, nprime2, sprime2, alphaprime2, nalphaprime2, monitor, call_lf = build_tree_tf(thetaplus, rplus, u, v, j - 1, epsilon, joint0, call_lf, hnn_model, args)
+                _, _, thetaplus, rplus, thetaprime2, rprime2, nprime2, sprime2, alphaprime2, nalphaprime2, monitor, call_lf = build_tree_tf(thetaplus, rplus, u, v, j - 1, epsilon, joint0, call_lf, hnn_model, args, functions_tf)
             # Choose which subtree to propagate a sample up from. (see Algorithm 3 in Hoffman)
             if (tf.random.uniform(shape=[]) < (float(nprime2) / max(float(nprime + nprime2), 1.))):
                 thetaprime = thetaprime2[:]
@@ -179,7 +179,7 @@ def sample(args):
     # alpha_req: record the sum of probability (what is this for?)
     alpha_req = [tf.zeros(shape=[1]) for _ in range(M)]
     # H_store: record the Hamitonian value
-    H_store = [tf.zeros(shape=[1]) for _ in range(M)]
+    H_store = [tf.zeros(shape=[]) for _ in range(M)]
     # monitor_err: record the intergation error
     monitor_err = [tf.zeros(shape=[1]) for _ in range(M)]
     call_lf = 0
@@ -191,6 +191,9 @@ def sample(args):
     log_counter_lf = 0
     hnn_model = get_model(args, baseline=False)
     r_sto = tf.zeros(shape=[int(args.input_dim/2)])
+
+    dist_func_obj = dist_func(args)
+    functions_tf = dist_func_obj.get_Hamiltonian
 
     for m in range(1, M + Madapt, 1):
         if args.verbose and m % args.print_every == 0:
@@ -230,9 +233,9 @@ def sample(args):
 
             # Double the size of the tree.
             if v == -1:
-                thetaminus, rminus, _, _, thetaprime, rprime, nprime, sprime, alpha, nalpha, monitor, call_lf = build_tree_tf(thetaminus, rminus, u, v, j, args.epsilon, joint, call_lf, hnn_model, args)
+                thetaminus, rminus, _, _, thetaprime, rprime, nprime, sprime, alpha, nalpha, monitor, call_lf = build_tree_tf(thetaminus, rminus, u, v, j, args.epsilon, joint, call_lf, hnn_model, args, functions_tf)
             else:
-                _, _, thetaplus, rplus, thetaprime, rprime, nprime, sprime, alpha, nalpha, monitor, call_lf = build_tree_tf(thetaplus, rplus, u, v, j, args.epsilon, joint, call_lf, hnn_model, args)
+                _, _, thetaplus, rplus, thetaprime, rprime, nprime, sprime, alpha, nalpha, monitor, call_lf = build_tree_tf(thetaplus, rplus, u, v, j, args.epsilon, joint, call_lf, hnn_model, args, functions_tf)
 
             # Use Metropolis-Hastings to decide whether or not to move to 
             # a point from the half-tree we just generated.
@@ -265,7 +268,7 @@ def sample(args):
     # alpha_req: N
     alpha_req = tf.concat(alpha_req, axis=0)
     # H_store: N
-    H_store = tf.concat(H_store, axis=0)
+    H_store = tf.stack(H_store, axis=0)
     # monitor_err: N
     monitor_err = tf.concat(monitor_err, axis=0)
     # is_lf: N

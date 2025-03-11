@@ -20,10 +20,13 @@ import tensorflow_probability as tfp
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
 sys.path.append(PARENT_DIR)
-from tf_version.functions_tf import functions_tf
+from tf_version.functions_tf import dist_func
 from tf_version.utils_tf import leapfrog_tf, to_pickle, from_pickle
 from tf_version.get_args import get_args
 args = get_args()
+
+dist_func_obj = dist_func(args)
+functions_tf = dist_func_obj.get_Hamiltonian
 
 def dynamics_fn_tf(t, coords):
     # dcoords: gradient of "functions" evaluated at "coords"

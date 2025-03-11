@@ -22,8 +22,6 @@ THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
 sys.path.append(PARENT_DIR)
 from tf_version.utils_tf import choose_nonlinearity
-from tf_version.get_args import get_args
-args = get_args()
 
 @keras.saving.register_keras_serializable()
 class MLP(keras.Model):

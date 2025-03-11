@@ -115,7 +115,7 @@ def test_train(mocker, mock_hnn, mock_hnn_pytorch, mock_get_dataset, mock_get_da
     mocker.patch('paper_code.train_hnn.HNN', mock_hnn_pytorch)
     mocker.patch('tf_version.train_hnn_tf.get_dataset_tf', mock_get_dataset)
     mocker.patch('paper_code.train_hnn.get_dataset', mock_get_dataset_pytorch)
-    mocker.patch('tf_version.functions_tf.args', args)
+    # mocker.patch('tf_version.functions_tf.args', args)
     mocker.patch('paper_code.functions.args', args)
     
     out_model, out_stats = train(args)
