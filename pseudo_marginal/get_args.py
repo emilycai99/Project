@@ -2,7 +2,17 @@ import argparse
 import os
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def get_args():
+def parse_float_list(input_str):
+    try:
+        float_list = [float(num) for num in input_str.split(',')]
+        if len(float_list) == 1:
+            return float_list[0]
+        else:
+            return float_list
+    except ValueError:
+        raise argparse.ArgumentTypeError("All values must be valid floats separated by commas")
+
+def get_args(args):
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument('--dist_name', default='gauss_mix', type=str, help='name of the probability distribution function')
 
@@ -63,7 +73,8 @@ def get_args():
 
     parser.add_argument('--grad_flag', default=False, action='store_true', help='whether to use the manual grad')
     parser.add_argument('--grad_mass_flag', default=False, action='store_true', help='whether to use the non identity mass matrix')
-    parser.add_argument('--rho_var', default=10.0, type=float, help='the variance for rho')
+    parser.add_argument('--rho_var', default=1.0, type=parse_float_list, help='the variance for rho')
+    parser.add_argument('--num_flag', default=False, action='store_true', help='whether to use numerical gradients or HNN')
 
     parser.add_argument("-f", "--fff", help="a dummy argument to fool ipython", default="1")
-    return parser.parse_args()
+    return parser.parse_args(args)

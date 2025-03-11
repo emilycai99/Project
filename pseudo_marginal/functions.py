@@ -4,9 +4,10 @@ from tensorflow_probability import distributions as tfd
 import math
 import sys, os
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from utils import from_pickle
-from dist_generation import generate_GLMM
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from pseudo_marginal.utils import from_pickle
+from pseudo_marginal.dist_generation import generate_GLMM
 
 class Hamiltonian_func(tf.Module):
     '''
@@ -27,17 +28,33 @@ class Hamiltonian_func(tf.Module):
         else:
             raise NotImplementedError
     
-    def get_func(self):
+    def get_func(self, coords):
         if self.args.dist_name == 'gauss_mix':
-            return self.gauss_mix_func
+            return self.calculate_H(coords)
         else:
             raise NotImplementedError
+    
+    def get_target_log_prob_func(self, coords):
+        if self.args.dist_name == 'gauss_mix':
+            return self.gauss_mix_func(coords)
+        else:
+            raise NotImplementedError
+    
+    def calculate_H(self, coords):
+        # coords = [beta, mu1, mu2, log(lambda1), log(lambda2), logit(w), rho, u, p]
+        # d: length of theta
+        target_dim = self.args.p + 5
+        aux_dim = self.args.T*self.args.N
+        theta, rho, u, p = tf.split(coords, [target_dim, target_dim, aux_dim, aux_dim])
+        target_log_prob = self.gauss_mix_func(tf.concat([theta, u], axis=-1))
+        H = -target_log_prob + 0.5*tf.tensordot(rho, rho, axes=1) + 0.5*tf.tensordot(p, p, axes=1)
+        return H
 
     def gauss_mix_func(self, coords):
         # d: length of theta
         d = self.args.p + 5
-        # coords = [beta, mu1, mu2, log(lambda1), log(lambda2), logit(w), rho, u, p]
-        assert coords.shape[0] == 2*d + 2*(self.args.T * self.args.N), 'incorrect shape of coords'
+        # coords = [beta, mu1, mu2, log(lambda1), log(lambda2), logit(w), u]
+        assert coords.shape[0] == d + (self.args.T * self.args.N), 'incorrect shape of [theta, u]'
 
         # get all the parameters
         theta = coords[:d]
@@ -47,12 +64,9 @@ class Hamiltonian_func(tf.Module):
         lambda1 = tf.math.exp(coords[self.args.p+2])
         lambda2 = tf.math.exp(coords[self.args.p+3])
         w = tf.math.sigmoid(coords[self.args.p+4])
-        rho = coords[d:2*d]
-        u, p = tf.split(coords[-2*(self.args.T * self.args.N):], 2)
+        u = coords[d:]
 
-        assert rho.shape[0] == d, 'incorrect shape of rho'
         assert u.shape[0] == self.args.T * self.args.N, 'incorrect shape of u'
-        assert p.shape[0] == self.args.T * self.args.N, 'incorrect shape of p'
 
         # X contains Xil for i = 1 to T and l = 1 to N
         X = tf.reshape(3.0 * u, shape=[self.args.T, self.args.N])
@@ -96,10 +110,9 @@ class Hamiltonian_func(tf.Module):
         log_prior = theta_prior.log_prob(theta)
 
         # calculate the hamiltonian value
-        H = -log_prior - log_phat + 0.5*tf.tensordot(rho, rho, axes=1) + 0.5*tf.tensordot(u, u, axes=1) +\
-            0.5*tf.tensordot(p, p, axes=1)
+        target_log_prob = log_prior + log_phat - 0.5*tf.tensordot(u, u, axes=1)
 
-        return H
+        return target_log_prob
 
 class Hamiltonian_func_debug(tf.Module):
     '''
@@ -120,17 +133,33 @@ class Hamiltonian_func_debug(tf.Module):
         else:
             raise NotImplementedError
     
-    def get_func(self):
+    def get_func(self, coords):
         if self.args.dist_name == 'gauss_mix':
-            return self.gauss_mix_func
+            return self.calculate_H(coords)
         else:
             raise NotImplementedError
+    
+    def get_target_log_prob_func(self, coords):
+        if self.args.dist_name == 'gauss_mix':
+            return self.gauss_mix_func(coords)
+        else:
+            raise NotImplementedError
+    
+    def calculate_H(self, coords):
+        # coords = [beta, mu1, mu2, log(lambda1), log(lambda2), logit(w), rho, u, p]
+        # d: length of theta
+        target_dim = self.args.p + 5
+        aux_dim = self.args.T*self.args.N
+        theta, rho, u, p = tf.split(coords, [target_dim, target_dim, aux_dim, aux_dim])
+        target_log_prob = self.gauss_mix_func(tf.concat([theta, u], axis=-1))
+        H = -target_log_prob + 0.5*tf.tensordot(rho, rho, axes=1) + 0.5*tf.tensordot(p, p, axes=1)
+        return H
 
     def gauss_mix_func(self, coords):
         # d: length of theta
         d = self.args.p + 5
-        # coords = [beta, mu1, mu2, log(lambda1), log(lambda2), logit(w), rho, u, p]
-        assert coords.shape[0] == 2*d + 2*(self.args.T * self.args.N), 'incorrect shape of coords'
+        # coords = [beta, mu1, mu2, log(lambda1), log(lambda2), logit(w), u]
+        assert coords.shape[0] == d + (self.args.T * self.args.N), 'incorrect shape of [theta, u]'
 
         # get all the parameters
         theta = coords[:d]
@@ -140,12 +169,9 @@ class Hamiltonian_func_debug(tf.Module):
         lambda1 = tf.math.exp(coords[self.args.p+2])
         lambda2 = tf.math.exp(coords[self.args.p+3])
         w = tf.math.sigmoid(coords[self.args.p+4])
-        rho = coords[d:2*d]
-        u, p = tf.split(coords[-2*(self.args.T * self.args.N):], 2)
+        u = coords[d:]
 
-        assert rho.shape[0] == d, 'incorrect shape of rho'
         assert u.shape[0] == self.args.T * self.args.N, 'incorrect shape of u'
-        assert p.shape[0] == self.args.T * self.args.N, 'incorrect shape of p'
 
         # X contains Xil for i = 1 to T and l = 1 to N
         X = tf.reshape(3.0 * u, shape=[self.args.T, self.args.N])
@@ -192,9 +218,8 @@ class Hamiltonian_func_debug(tf.Module):
         log_prior = theta_prior.log_prob(theta)
 
         # calculate the hamiltonian value
-        H = -log_prior - log_phat + 0.5*tf.tensordot(rho, rho, axes=1) + 0.5*tf.tensordot(u, u, axes=1) +\
-            0.5*tf.tensordot(p, p, axes=1)
-
-        return H
+        target_log_prob = log_prior + log_phat - 0.5*tf.tensordot(u, u, axes=1) 
+        
+        return target_log_prob
         
 

@@ -13,12 +13,13 @@ import numpy as np
 import math
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from nn_models import MLP, CNN_MLP, Info_MLP, Info_CNN_MLP
-from hnn import HNN
-from get_args import get_args
-from utils import log_start, log_stop, integrator, numerical_grad, to_pickle
-from functions import Hamiltonian_func_debug
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from pseudo_marginal.nn_models import MLP, CNN_MLP, Info_MLP, Info_CNN_MLP
+from pseudo_marginal.hnn import HNN
+from pseudo_marginal.get_args import get_args
+from pseudo_marginal.utils import log_start, log_stop, integrator, numerical_grad, to_pickle
+from pseudo_marginal.functions import Hamiltonian_func_debug
 
 ##### Sampling code below #####
 # To load the trained HNN model
@@ -258,7 +259,7 @@ def sample(args):
 
     # get the Hamiltonian function
     ham = Hamiltonian_func_debug(args)
-    func = ham.get_func()
+    func = ham.get_func
 
     for m in range(1, M + Madapt, 1):
         if args.verbose and m % args.print_every == 0:
@@ -382,7 +383,7 @@ def sample(args):
     return samples, traj_len, alpha_req, H_store, monitor_err, is_lf
 
 if __name__ == '__main__':
-    args = get_args()
+    args = get_args(sys.argv[1:])
     os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(str(args.gpu_id))
     sample(args)
 

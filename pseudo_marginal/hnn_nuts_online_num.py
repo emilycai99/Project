@@ -13,15 +13,14 @@ import numpy as np
 import math
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from nn_models import MLP, CNN_MLP, Info_MLP, Info_CNN_MLP
-from hnn import HNN
-from get_args import get_args
-from utils import log_start, log_stop, integrator
-from grad import calculate_grad, numerical_grad_debug, integrator_mass, calculate_grad_mass
-from hnn_nuts_online import stop_criterion
-from utils import numerical_grad
-from functions import Hamiltonian_func_debug
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from pseudo_marginal.get_args import get_args
+from pseudo_marginal.utils import log_start, log_stop, integrator
+from pseudo_marginal.grad import calculate_grad, numerical_grad_debug, integrator_mass, calculate_grad_mass
+from pseudo_marginal.hnn_nuts_online import stop_criterion
+from pseudo_marginal.utils import numerical_grad
+from pseudo_marginal.functions import Hamiltonian_func_debug
 
 ##### Sampling code below #####
 log_counter_lf = 0
@@ -206,7 +205,7 @@ def sample(args):
         func = cal_grad.calculate_H
     else:
         ham = Hamiltonian_func_debug(args)
-        func = ham.get_func()
+        func = ham.get_func
     
 
     for m in range(1, M + Madapt, 1):
@@ -333,7 +332,7 @@ def sample(args):
     return samples, traj_len, alpha_req, H_store, monitor_err, is_lf
 
 if __name__ == '__main__':
-    args = get_args()
+    args = get_args(sys.argv[1:])
     os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(str(args.gpu_id))
     sample(args)
 

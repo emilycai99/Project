@@ -107,6 +107,7 @@ def test_get_dataset_tf(mocker, mock_get_trajectory_tf):
     args = mock_args()
     mocker.patch('pseudo_marginal.data.get_trajectory_tf', mock_get_trajectory_tf)
     mocker.patch('pseudo_marginal.data.to_pickle')
+    mocker.patch('pseudo_marginal.data.os.makedirs')
     data = get_dataset_tf(args, func=None)
 
     # expected (old version)
@@ -189,7 +190,7 @@ def test_get_dataset_loader():
 
     data_folder = '{}/data/{}_T{}_n{}_p{}_N{}_ns{}_ls{}_ss{}'.format(args.save_dir, args.dist_name, 
                                                                       args.T, args.n, args.p, args.N,
-                                                                     args.num_samples, args.len_sample, args.step_size)
+                                                                      args.num_samples, args.len_sample, args.step_size)
     shutil.rmtree(data_folder)
 
 

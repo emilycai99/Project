@@ -5,14 +5,15 @@ import keras
 import math
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from nn_models import MLP, CNN_MLP, Info_MLP, Info_CNN_MLP
-from hnn import HNN
-from data import get_dataset_loader
-from utils import L2_loss, log_start, log_stop
-from get_args import get_args
-from functions import Hamiltonian_func_debug
-from grad import calculate_grad
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from pseudo_marginal.nn_models import MLP, CNN_MLP, Info_MLP, Info_CNN_MLP
+from pseudo_marginal.hnn import HNN
+from pseudo_marginal.data import get_dataset_loader
+from pseudo_marginal.utils import L2_loss, log_start, log_stop
+from pseudo_marginal.get_args import get_args
+from pseudo_marginal.functions import Hamiltonian_func_debug
+from pseudo_marginal.grad import calculate_grad
 
 def l1_penalty(args, model):
   if 'cnn' in args.nn_model_name:
@@ -40,7 +41,7 @@ def train(args, save_path):
     func = cal.grad_total
   else:
     ham = Hamiltonian_func_debug(args)
-    func = ham.get_func()
+    func = ham.get_func
   
   # Model building
   if args.nn_model_name == 'mlp':
@@ -157,7 +158,7 @@ def train(args, save_path):
   return model, best_model, stats
 
 if __name__ == "__main__":
-    args = get_args()
+    args = get_args(sys.argv[1:])
     os.environ["CUDA_VISIBLE_DEVICES"]="{}".format(str(args.gpu_id))
     os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
     result_path = '{}/results/{}_T{}_n{}_p{}_N{}_ns{}_ls{}_ss{}_lr{}_ps{}_{}'.format(args.save_dir, args.dist_name,

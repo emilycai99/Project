@@ -4,9 +4,9 @@ from tensorflow_probability import distributions as tfd
 import sys, os
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-
-from utils import to_pickle
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from pseudo_marginal.utils import to_pickle
 
 def generate_GLMM(true_beta=[-1.1671, 2.4665, -0.1918, -1.0080, 0.6212, 0.6524, 1.5410, 0.2653], 
                   true_mu=[0.0, 3.0], true_lambda=[10.0, 3.0], true_w=0.8, 

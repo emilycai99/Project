@@ -4,9 +4,10 @@ from tensorflow_probability import distributions as tfd
 import math
 import sys, os
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(THIS_DIR)
-from dist_generation import generate_GLMM
-from utils import * 
+PARENT_DIR = os.path.abspath(os.path.join(THIS_DIR, os.pardir))
+sys.path.append(PARENT_DIR)
+from pseudo_marginal.dist_generation import generate_GLMM
+from pseudo_marginal.utils import * 
 
 def stable_log1pexp(x):
     '''
@@ -143,7 +144,7 @@ class calculate_grad(tf.Module):
         else:
             raise NotImplementedError
     
-    def calculate_H(self, coords):
+    def get_target_log_prob(self, coords):
         d = self.args.p + 5
         theta = coords[:d]
         beta = coords[:self.args.p]
@@ -153,8 +154,7 @@ class calculate_grad(tf.Module):
         log_lambda2 = coords[self.args.p+3]
         logit_w = coords[self.args.p+4]
 
-        rho = coords[d:2*d]
-        u, p = tf.split(coords[-2*(self.args.T * self.args.N):], 2)
+        u = coords[d:]
         X = tf.reshape(3.0 * u, shape=[self.args.T, self.args.N])
 
         log_bernoulli, _, _ = grad_bernoulli(self.Y, self.Z, X, beta)
@@ -169,8 +169,18 @@ class calculate_grad(tf.Module):
 
         log_prior = - 1.0 / 200.0 *tf.tensordot(theta, theta, axes=1) - d / 2.0 * tf.math.log(tf.constant([200 * math.pi], dtype=tf.float32))
 
-        H = -log_prior - log_pval + 0.5*tf.tensordot(rho, rho, axes=1) + 0.5*tf.tensordot(u, u, axes=1) +\
-            0.5*tf.tensordot(p, p, axes=1)
+        target_log_prob = log_prior + log_pval - 0.5*tf.tensordot(u, u, axes=1)
+            
+        return tf.squeeze(target_log_prob)
+    
+    def calculate_H(self, coords):
+        d = self.args.p + 5
+        theta = coords[:d]
+        rho = coords[d:2*d]
+        u, p = tf.split(coords[-2*(self.args.T * self.args.N):], 2)
+        
+        target_log_prob = self.get_target_log_prob(tf.concat([theta, u], axis=-1))
+        H = -target_log_prob + 0.5*tf.tensordot(rho, rho, axes=1) + 0.5*tf.tensordot(p, p, axes=1)
             
         return tf.squeeze(H)
 
@@ -263,80 +273,33 @@ class calculate_grad_mass(tf.Module):
             self.rho_precision_mat = tf.eye(args.target_dim, dtype=tf.float32) * 1.0 / args.rho_var
         else:
             self.rho_precision_mat = tf.linalg.diag(1.0 / tf.constant(args.rho_var, dtype=tf.float32))
+
+        self.cal_grad_base = calculate_grad(args)
+    
+    def get_target_log_prob(self, coords):
+        return self.cal_grad_base.get_target_log_prob(coords)
     
     def calculate_H(self, coords):
         d = self.args.p + 5
         theta = coords[:d]
-        beta = coords[:self.args.p]
-        mu1 = coords[self.args.p]
-        mu2 = coords[self.args.p+1]
-        log_lambda1 = coords[self.args.p+2]
-        log_lambda2 = coords[self.args.p+3]
-        logit_w = coords[self.args.p+4]
-
         rho = coords[d:2*d]
         u, p = tf.split(coords[-2*(self.args.T * self.args.N):], 2)
-        X = tf.reshape(3.0 * u, shape=[self.args.T, self.args.N])
-
-        log_bernoulli, _, _ = grad_bernoulli(self.Y, self.Z, X, beta)
-        log_gauss_mix, _, _ = grad_gauss_mix(X, mu1, mu2, log_lambda1, log_lambda2, logit_w)
-        log_normal, _ = grad_normal(X)
-
-        log_W = log_bernoulli + tf.repeat(tf.expand_dims(log_gauss_mix - log_normal, axis=-1), repeats=self.args.n, axis=-1)
-        max_log_W = tf.math.reduce_max(log_W, axis=1, keepdims=True) # T x 1 x n
-        W_tmp = tf.math.exp(tf.math.subtract(log_W, max_log_W))
-        log_pval = tf.math.log(tf.reduce_sum(W_tmp, axis=1)) + tf.squeeze(max_log_W, axis=1) - tf.math.log(tf.constant([self.args.N], dtype=tf.float32))
-        log_pval = tf.reduce_sum(log_pval)
-
-        log_prior = - 1.0 / 200.0 *tf.tensordot(theta, theta, axes=1) - d / 2.0 * tf.math.log(tf.constant([200 * math.pi], dtype=tf.float32))
-
+        
+        target_log_prob = self.get_target_log_prob(tf.concat([theta, u], axis=-1))
         # difference from identity mass matrix
         rho_expand = tf.expand_dims(rho, axis=-1) # target_dim x 1
-
-        H = -log_prior - log_pval + 0.5 * tf.squeeze(tf.matmul(tf.matmul(rho_expand, self.rho_precision_mat, transpose_a=True), rho_expand)) +\
-              0.5*tf.tensordot(u, u, axes=1) + 0.5*tf.tensordot(p, p, axes=1)
+        H = -target_log_prob + 0.5*tf.tensordot(p, p, axes=1) + \
+            0.5 * tf.squeeze(tf.matmul(tf.matmul(rho_expand, self.rho_precision_mat, transpose_a=True), rho_expand))
             
         return tf.squeeze(H)
 
     def grad_total(self, coords):
-        d = self.args.p + 5
-        theta = coords[:d]
-        beta = coords[:self.args.p]
-        mu1 = coords[self.args.p]
-        mu2 = coords[self.args.p+1]
-        log_lambda1 = coords[self.args.p+2]
-        log_lambda2 = coords[self.args.p+3]
-        logit_w = coords[self.args.p+4]
-
-        rho = coords[d:2*d]
-        u, p = tf.split(coords[-2*(self.args.T * self.args.N):], 2)
-        X = tf.reshape(3.0 * u, shape=[self.args.T, self.args.N])
-
-        log_bernoulli, grad_beta_bernoulli, grad_u_bernoulli = grad_bernoulli(self.Y, self.Z, X, beta)
-        log_gauss_mix, grad_out_gauss_mix, grad_u_gauss_mix = grad_gauss_mix(X, mu1, mu2, log_lambda1, log_lambda2, logit_w)
-        log_normal, grad_u_normal = grad_normal(X)
-
-        # T x N x n
-        log_W = log_bernoulli + tf.repeat(tf.expand_dims(log_gauss_mix - log_normal, axis=-1), repeats=self.args.n, axis=-1)
-        max_log_W = tf.math.reduce_max(log_W, axis=1, keepdims=True) # T x 1 x n
-        W = tf.math.exp(tf.math.subtract(log_W, max_log_W)) # T x N x n
-        sum_W = tf.reduce_sum(W, axis=1, keepdims=True) # T x N x n
-        W = tf.math.divide(W, sum_W) # T x N x n
-
-        grad_beta = tf.multiply(tf.expand_dims(W, axis=-1), grad_beta_bernoulli) # T x N x n x p
-        grad_beta = tf.reduce_sum(grad_beta, axis=[0,1,2]) # p
-        grad_out = tf.multiply(tf.expand_dims(W, axis=-1), 
-                            tf.repeat(tf.expand_dims(grad_out_gauss_mix, axis=2), repeats=self.args.n, axis=2))
-        grad_out = tf.reduce_sum(grad_out, axis=[0,1,2]) # 5
-        grad_u = tf.multiply(W, grad_u_bernoulli + tf.repeat(tf.expand_dims(grad_u_gauss_mix - grad_u_normal, axis=-1), repeats=self.args.n, axis=-1))
-        grad_u = tf.reduce_sum(grad_u, axis=-1)
-
-        # adjust for the sign and other components
-        grad_theta = -tf.concat([grad_beta, grad_out], axis=0) + 0.01 * theta
-        grad_u = -tf.reshape(grad_u, shape=[self.args.aux_dim]) + u
-        grad_rho = tf.squeeze(tf.matmul(self.rho_precision_mat, tf.expand_dims(rho, axis=-1)))
-        grad_p = p
-
+        target_dim = self.args.p + 5
+        aux_dim = self.args.T * self.args.N
+        rho = coords[target_dim:2*target_dim]
+        grads = self.cal_grad_base.grad_total(coords)
+        grad_theta, _, grad_u, grad_p = tf.split(grads, [target_dim, target_dim, aux_dim, aux_dim], axis=0)
+        grad_rho = grad_rho = tf.squeeze(tf.matmul(self.rho_precision_mat, tf.expand_dims(rho, axis=-1)))
         grads = tf.concat([grad_theta, grad_rho, grad_u, grad_p], axis=0)
         return grads
 
