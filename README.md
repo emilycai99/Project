@@ -33,15 +33,15 @@ usage: tf_version/train_hnn_tf.py [-h] [--input_dim INPUT_DIM] [--num_samples NU
 The following gives an example of training Hamiltonian Neural Network (HNN) for sampling from a 3D Rosenbrock density. The setting is 40 training samples, each with 100 units of end time and a step size of 0.025. The total training steps are 100,000.
 
 ```bash
-python tf_version/train_hnn_tf.py --dist_name nD_Rosenbrock --input_dim 6 --num_samples 40 --step_size 0.025 --len_sample 100 --num_layers 3 --total_steps 100000 --verbose --print_every 500 --num_hmc_samples 125000 --gpu_id 3
+python tf_version/train_hnn_tf.py --dist_name nD_Rosenbrock --input_dim 6 --num_samples 40 --step_size 0.025 --len_sample 100 --num_layers 3 --total_steps 100000 --verbose --print_every 500 --gpu_id 0
 ```
 
 ### HMC with efficient NUTS and HNNs
 
-The command below conducts the HMC sampling from the 3D Rosenbrock density, where 125,000 samples are drawn.
+The command below conducts the HMC sampling from the 3D Rosenbrock density, where 120,000 samples are drawn.
 
 ```bash
-python tf_version/hnn_nuts_online_tf.py  --dist_name nD_Rosenbrock --input_dim 6 --num_samples 40 --step_size 0.025 --len_sample 100 --num_layers 3 --total_steps 100000 --verbose --print_every 500 --num_hmc_samples 125000 --gpu_id 3
+python tf_version/nuts_hnn_sample.py  --dist_name nD_Rosenbrock --input_dim 6 --num_samples 40 --step_size 0.025 --epsilon 0.025 --len_sample 100 --num_layers 3 --total_steps 100000 --verbose --print_every 50 --num_hmc_samples 120000 --num_burnin_samples 5000 --gpu_id 0
 ```
 
 ### Tests
@@ -96,29 +96,29 @@ This subsection gives examples of training different neural networks for samplin
 
 This subsection gives examples of pseudo-marginal HMC sampling from the GLMM. There are several sampling schemes available to choose and their commands are given below.
 
-* With efficient NUTS and HNNs: `pseudo_marginal/hnn_nuts_online.py`
+* With efficient NUTS and HNNs: `pseudo_marginal/pm_nuts_sample.py` with `num_flag=False`.
 
   ```
-  python pseudo_marginal/hnn_nuts_online.py --num_samples 400 --step_size 0.002 --epsilon 0.002 --len_sample 2.0 --num_layers 3 --total_steps 1000 --verbose --print_every 1 --gpu_id 0 --seed 0 --batch_size 512 --batch_size_test 512 --learn_rate 1e-4 --decay_rate 0.5 --nn_model_name cnn --should_load --num_hmc_samples 14000 --num_burnin_samples 5000
+  python pseudo_marginal/pm_nuts_sample.py --grad_flag --num_samples 400 --step_size 0.002 --epsilon 0.002 --len_sample 2.0 --num_layers 3 --total_steps 1000 --verbose --print_every 50 --gpu_id 0 --seed 0 --batch_size 512 --batch_size_test 512 --learn_rate 1e-4 --decay_rate 0.5 --nn_model_name cnn --should_load --num_hmc_samples 7000 --num_burnin_samples 1000 --lf_threshold 1000 
 
   ```
-* With efficient NUTS and numerical gradients: `pseudo_marginal/hnn_nuts_online_num.py`
+* With efficient NUTS and numerical gradients: `pseudo_marginal/pm_nuts_sample.py` with `num_flag=True`.
 
   ```
-  python pseudo_marginal/hnn_nuts_online_num.py --grad_flag --grad_mass_flag --num_samples 400 --step_size 0.002 --epsilon 0.002 --len_sample 2.0 --num_layers 3 --total_steps 1000 --verbose --print_every 1 --gpu_id 0 --seed 0 --batch_size 512 --batch_size_test 512 --learn_rate 1e-4 --decay_rate 0.5 --nn_model_name cnn --should_load --num_hmc_samples 14000 --num_burnin_samples 5000 --hnn_threshold 1000
+  python pseudo_marginal/pm_nuts_sample.py --grad_flag --num_flag --num_samples 400 --step_size 0.002 --epsilon 0.002 --len_sample 2.0 --num_layers 3 --total_steps 1000 --verbose --print_every 50 --gpu_id 0 --seed 0 --batch_size 512 --batch_size_test 512 --learn_rate 1e-4 --decay_rate 0.5 --nn_model_name cnn --should_load --num_hmc_samples 7000 --num_burnin_samples 1000 --lf_threshold 1000 --rho_var 1.0
 
   ```
 
-  Note that in this particular setting, there are three options on how to calculate the Hamiltonian and numerical gradients by `grad_flag` and `grad_mass_flag`. Setting `grad_mass_flag=True` uses the non-identity mass matrix and manual calculations. Setting `grad_mass_flag=False, grad_flag=True` uses the identity mass matrix and manual calculations. Setting `grad_flag=False` uses `tfp.distributions` and auto-differentiation.
-* With efficient NUTS, numerical gradients, and auto-tuning of step size: `pseudo_marginal/hnn_nuts_online_epsilon.py`;
+  Note that in this particular setting, there are three options on how to calculate the Hamiltonian and numerical gradients by `grad_flag` and `rho_var`. Setting `rho_var` to value(s) other than 1.0 uses the non-identity mass matrix and manual calculations. Setting `grad_flag=True` uses the identity mass matrix and manual calculations. Setting `grad_flag=False` uses `tfp.distributions` and auto-differentiation.
+* With efficient NUTS, numerical gradients, and auto-tuning of step size: `pseudo_marginal/pm_nuts_dual_averaging_sample.py` where `--delta` refers to the target accept probability and `--adapt_iter` refers to the number of adaptation steps.
 
   ```
-  python pseudo_marginal/hnn_nuts_online_epsilon.py --grad_flag --num_samples 400 --step_size 0.002 --epsilon 0.002 --len_sample 2.0 --num_layers 3 --total_steps 1000 --verbose --print_every 1 --gpu_id 0 --seed 0 --batch_size 512 --batch_size_test 512 --learn_rate 1e-4 --decay_rate 0.5 --nn_model_name cnn --should_load --num_hmc_samples 14000 --num_burnin_samples 5000 --hnn_threshold 1000
+  python pseudo_marginal/pm_nuts_dual_averaging_sample.py --grad_flag --num_flag --num_samples 400 --step_size 0.002 --epsilon 0.002 --len_sample 2.0 --num_layers 3 --total_steps 1000 --verbose --print_every 50 --gpu_id 0 --seed 0 --batch_size 512 --batch_size_test 512 --learn_rate 1e-4 --decay_rate 0.5 --nn_model_name cnn --should_load --num_hmc_samples 7000 --num_burnin_samples 1000 --lf_threshold 1000 --adapt_iter 1000 --delta 0.65
   ```
-* Without efficient NUTS or HNNs: `pseudo_marginal/hnn_nuts_online_num_no_nuts.py`.
+* Without efficient NUTS or HNNs: `pseudo_marginal/pm_hmc_sample.py` with `num_flag=True` and `grad_flag=True`.
 
   ```
-  python pseudo_marginal/hnn_nuts_online_num_no_nuts.py --grad_flag --num_samples 400 --step_size 0.002 --epsilon 0.002 --len_sample 2.0 --num_layers 3 --total_steps 1000 --verbose --print_every 1 --gpu_id 0 --seed 0 --batch_size 512 --batch_size_test 512 --learn_rate 1e-4 --decay_rate 0.5 --nn_model_name cnn --should_load --num_hmc_samples 14000 --num_burnin_samples 5000
+  python pseudo_marginal/pm_hmc_sample.py --grad_flag --num_flag --num_samples 400 --step_size 0.002 --epsilon 0.002 --len_sample 2.0 --num_layers 3 --total_steps 1000 --verbose --print_every 50 --gpu_id 0 --seed 0 --batch_size 512 --batch_size_test 512 --learn_rate 1e-4 --decay_rate 0.5 --nn_model_name cnn --should_load --num_hmc_samples 7000 --num_burnin_samples 1000
   ```
 
 ### Tests
