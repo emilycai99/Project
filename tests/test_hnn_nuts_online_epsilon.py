@@ -38,7 +38,7 @@ class mock_args():
         self.nn_out_dim = 26
         self.nonlinearity = 'sine'
         self.num_layers = 3
-        self.data_pth = os.path.join(PARENT_DIR, 'data')
+        self.data_pth = os.path.join(PARENT_DIR, 'pseudo_marginal/data')
         self.grad_type = None
         self.penalty_strength = 0.0
         self.verbose = True

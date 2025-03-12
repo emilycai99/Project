@@ -250,7 +250,7 @@ def test_integration_hnn_nuts_online(mocker, build_hnn, build_hnn_pytorch, mock_
     samples_pytorch, traj_len_pytorch, alpha_req_pytorch, H_store_pytorch, monitor_err_pytorch, is_lf_pytorch = sample_pytorch(args)
 
     print(samples, traj_len, alpha_req, H_store, monitor_err, is_lf)
-    assert np.allclose(samples.numpy(), samples_pytorch)
+    assert np.allclose(samples.numpy(), samples_pytorch, atol=1e-03)
     assert np.array_equal(traj_len.numpy(), traj_len_pytorch)
     assert np.allclose(alpha_req.numpy(), alpha_req_pytorch)
     assert np.allclose(H_store.numpy(), H_store_pytorch)

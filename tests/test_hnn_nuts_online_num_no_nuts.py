@@ -98,7 +98,7 @@ def mock_tf_random_normal():
         return tf.ones(shape=shape, dtype=dtype)
     return _mock_tf_random_normal
 
-def test_sample(mocker, mock_tf_random_normal, mock_integrator, mock_func):
+def test_sample(mocker, mock_tf_random_normal, mock_integrator, mock_func, tmp_path):
     '''
     unit test for sample
     '''
@@ -111,6 +111,7 @@ def test_sample(mocker, mock_tf_random_normal, mock_integrator, mock_func):
     mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num_no_nuts.calculate_grad.calculate_H', mock_func)
 
     args = mock_args()
+    args.save_dir = tmp_path
     samples, H_store = sample(args)
     expected_samples = tf.ones(shape=[args.target_dim], dtype=tf.float32)
     print('samples', samples)

@@ -292,7 +292,6 @@ class NoUTurnSampler_HNN(kernel.TransitionKernel):
           parallel_iterations=parallel_iterations,
           experimental_shard_axis_names=experimental_shard_axis_names,
           name=name,
-          hnn_model=hnn_model,
           hnn_model_args = hnn_model_args
       )   
 

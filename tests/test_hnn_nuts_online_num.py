@@ -149,7 +149,7 @@ def mock_build_tree_tf():
     return mock_build_tree_tf
 
 
-def test_sample(mocker, mock_build_tree_tf):
+def test_sample(mocker, mock_build_tree_tf, tmp_path):
     '''
     unit test for sample
     '''
@@ -160,6 +160,7 @@ def test_sample(mocker, mock_build_tree_tf):
     mocker.patch('pseudo_marginal.archive_sampling_files.hnn_nuts_online_num.print')
 
     args = mock_args()
+    args.save_dir = tmp_path
     samples, traj_len, alpha_req, H_store, monitor_err, is_lf = sample(args)
     
     theta0 = tf.constant([0.5838, 0.3805, -1.5062, -0.0442, 0.4717, -0.1435, 0.6371, -0.0522,

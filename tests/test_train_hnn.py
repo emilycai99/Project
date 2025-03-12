@@ -55,11 +55,12 @@ def mock_MLP():
         return model
     return _mock_MLP
 
-def test_train(mocker, mock_MLP):
+def test_train(mocker, mock_MLP, tmp_path):
     '''
     integration test for train function
     '''
     args = mock_args()
+    args.save_dir = tmp_path
     save_path = '{}/ckp/{}_T{}_n{}_p{}_N{}_ns{}_ls{}_ss{}_lr{}_{}'.format(args.save_dir, args.dist_name,
                                                                            args.T, args.n, args.p, args.N,
                                                                            args.num_samples, args.len_sample, 

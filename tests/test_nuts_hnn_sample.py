@@ -75,6 +75,3 @@ def test_sample(mocker, mock_os_makedirs, mock_np, mock_logging_start, mock_logg
     # Assert that np.save was called
     assert np.array_equal(mock_np.call_args[0][1], result.numpy())
     assert mock_np.call_args[0][0] == f'{result_path}/samples.npz'
-
-if __name__ == "__main__":
-    pytest.main()

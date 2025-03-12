@@ -102,6 +102,3 @@ def test_sample(mocker, mock_os_makedirs, mock_np, mock_logging_start, mock_logg
         else:
             assert np.array_equal(mock_np.call_args[0][1], tf.constant(10.0).numpy())
             assert mock_np.call_args[0][0] == f'{result_path}/total_num_grad_steps.npz'
-
-    if __name__ == "__main__":
-        pytest.main()

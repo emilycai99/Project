@@ -156,12 +156,12 @@ def test_load_tensor():
     assert tf.reduce_all(tf.equal(result1, tf.constant([0, 2])))
     assert tf.reduce_all(tf.equal(result2, tf.constant([1, 3])))
 
-def test_get_dataset_loader():
+def test_get_dataset_loader(tmp_path):
     '''
     unit test for get_dataset_loader function
     '''
     args = mock_args()
-    args.save_dir = THIS_DIR
+    args.save_dir = tmp_path
     args.T = 2
     args.n = 6
     args.p = 8

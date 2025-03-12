@@ -89,6 +89,3 @@ def test_sample(mocker, mock_os_exists, mock_os_makedirs, mock_np, mock_logging_
     # Assert that np.save was called
     assert np.array_equal(mock_np.call_args[0][1], tf.constant(1.0).numpy())
     assert mock_np.call_args[0][0] == f'{result_path}/leapfrogs_taken.npz'
-
-if __name__ == "__main__":
-    pytest.main()
